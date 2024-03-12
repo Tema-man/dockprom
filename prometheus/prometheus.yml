@@ -14,6 +14,12 @@ rule_files:
 
 # A scrape configuration containing exactly one endpoint to scrape.
 scrape_configs:
+  - job_name: 'unibot'
+    metrics_path: /metrics
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['unibot:9110']
+
   - job_name: 'nodeexporter'
     scrape_interval: 5s
     static_configs:
@@ -70,13 +76,3 @@ alerting:
     static_configs:
     - targets: 
       - 'alertmanager:9093'
-
-#  - job_name: 'nginx'
-#    scrape_interval: 10s
-#    static_configs:
-#      - targets: ['nginxexporter:9113']
-
-#  - job_name: 'aspnetcore'
-#    scrape_interval: 10s
-#    static_configs:
-#      - targets: ['eventlog-proxy:5000', 'eventlog:5000']
