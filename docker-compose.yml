@@ -1,4 +1,4 @@
-version: '3.3'
+version: '2.1'
 
 networks:
   monitor-net:
@@ -25,9 +25,7 @@ services:
       - '--web.enable-lifecycle'
     restart: unless-stopped
     expose:
-      - 9000
-    ports:
-      - 9000:9090
+      - 9090
     networks:
       - monitor-net
     labels:
@@ -43,9 +41,7 @@ services:
       - '--storage.path=/alertmanager'
     restart: unless-stopped
     expose:
-      - 9001
-    ports:
-      - 9001:9093
+      - 9093
     networks:
       - monitor-net
     labels:
@@ -65,9 +61,7 @@ services:
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
     restart: unless-stopped
     expose:
-      - 9002
-    ports:
-      - 9002:9100
+      - 9100
     networks:
       - monitor-net
     labels:
@@ -84,12 +78,10 @@ services:
       - /var/run:/var/run:ro
       - /sys:/sys:ro
       - /var/lib/docker:/var/lib/docker:ro
-      - /cgroup:/cgroup:ro # doesn't work on MacOS only for Linux
+      #- /cgroup:/cgroup:ro #doesn't work on MacOS only for Linux
     restart: unless-stopped
     expose:
-      - 9003
-    ports:
-      - 9003:8080
+      - 8080
     networks:
       - monitor-net
     labels:
@@ -109,9 +101,9 @@ services:
       - GF_INSTALL_PLUGINS=flant-statusmap-panel,ae3e-plotly-panel
     restart: unless-stopped
     expose:
-      - 9004
+      - 3030
     ports:
-      - 9004:3000
+      - 3030:3000
     networks:
       - monitor-net
     labels:
@@ -122,9 +114,27 @@ services:
     container_name: pushgateway
     restart: unless-stopped
     expose:
-      - 9005
+      - 9091
+    networks:
+      - monitor-net
+    labels:
+      org.label-schema.group: "monitoring"
+
+  caddy:
+    image: caddy:2.7.5
+    container_name: caddy
     ports:
-      - 9005:9091
+      - "8080:8080"
+      - "9090:9090"
+      - "9093:9093"
+      - "9091:9091"
+    volumes:
+      - ./caddy:/etc/caddy
+    environment:
+      - ADMIN_USER=${ADMIN_USER:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+      - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH:-$2a$14$1l.IozJx7xQRVmlkEQ32OeEEfP5mRxTpbDTCTcXRqn19gXD8YK1pO}
+    restart: unless-stopped
     networks:
       - monitor-net
     labels:
@@ -134,9 +144,9 @@ services:
     tty: true
     stdin_open: true
     expose:
-      - 9006
+      - 9115
     ports:
-      - 9006:9115
+      - 9115:9115
     image: prom/blackbox-exporter
     restart: always
     volumes:
@@ -150,31 +160,11 @@ services:
 
   speedtest:
     expose:
-      - 9007
+      - 9798
     ports:
-      - 9007:9798
+      - 9798:9798
     image: miguelndecarvalho/speedtest-exporter
     restart: always
-    networks:
-      - monitor-net
-    labels:
-      org.label-schema.group: "monitoring"
-
-  caddy:
-    image: caddy:2.7.5
-    container_name: caddy
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-      - "9003:9003"
-      - "9005:9005"
-    volumes:
-      - ./caddy:/etc/caddy
-    environment:
-      - ADMIN_USER=${ADMIN_USER:-admin}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
-      - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH:-$2a$14$1l.IozJx7xQRVmlkEQ32OeEEfP5mRxTpbDTCTcXRqn19gXD8YK1pO}
-    restart: unless-stopped
     networks:
       - monitor-net
     labels:
