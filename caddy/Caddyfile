@@ -1,5 +1,5 @@
 :9000 {
-    reverse_proxy grafana:3030  
+    reverse_proxy grafana:3000  
 }
 
 :9004 {
